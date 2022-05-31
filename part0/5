@@ -1,0 +1,12 @@
+title Exercise 0.5: Single page app
+
+browser->server: GET /exampleapp/spa
+server->browser: HTML code
+browser->server: get /exampleapp/main.css
+server->browser: main.css
+browser->server: get /exampleapp/spa.js
+server->browser: spa.js
+note left of browser: executes spa.js which fetches the json
+browser->server: get /exampleapp/data.json
+server->browser: data.json
+note left of browser: js populates the list using the data
