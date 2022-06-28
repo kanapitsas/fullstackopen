@@ -23,11 +23,15 @@ const Form = ({ newName, handleNameChange, newNumber, handleNumberChange, addPer
   
 
 const App = () => {
+  // to store the data
   const [persons, setPersons] = useState([]) 
+  // for the form
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
+  // for search
   const [filter, setFilter] = useState('')
 
+  // Load the database from the server
   useEffect(() => {
     axios
       .get('http://localhost:3001/persons')
@@ -48,7 +52,12 @@ const App = () => {
     event.preventDefault()
     const newPerson = { name: newName, number: newNumber }
     if (persons.findIndex(e => e.name === newName) === -1) {
-      setPersons(persons.concat(newPerson))
+      // post the new person to the server
+      axios
+        .post('http://localhost:3001/persons', newPerson)
+        // and save the response (with the id) in the local database
+        .then(response => {setPersons(persons.concat(response.data))})
+      
     }
     else {alert(`${newPerson.name} is already in the phonebook`)}
     setNewName('')
