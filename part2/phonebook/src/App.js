@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import service from './services/phonebook'
+import Notification from './components/Notification'
 
 const Person = ({ person, id, handleDel }) =>
   <li>{person.name}: {person.number} 
@@ -22,16 +23,14 @@ const Form = ({ newName, handleNameChange, newNumber, handleNumberChange, addPer
       <button type="submit">add</button>
     </div>
   </form>
-  
 
 const App = () => {
-  // to store the data
-  const [persons, setPersons] = useState([]) 
+  const [persons, setPersons] = useState([]) // to store the data
+  const [filter, setFilter] = useState('') // for search
+  const [notificationMessage, setNotificationMessage] = useState(null)
   // for the form
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState('')
-  // for search
-  const [filter, setFilter] = useState('')
 
   // Load the database from the server
   useEffect(() => {
@@ -40,19 +39,20 @@ const App = () => {
       .then(data => {setPersons(data)})
   }, [])
 
-  const handleNameChange = (event) => {
-    setNewName(event.target.value)
+  const sendNotification = (message, time = 3000) => {
+    setNotificationMessage(message)
+    setTimeout(() => setNotificationMessage(null), time)
   }
-  const handleNumberChange = (event) => {
-    setNewNumber(event.target.value)
-  }
-  const handleFilterChange = (event) => {
-    setFilter(event.target.value.toLowerCase())
-  }
+
+  const handleNameChange = (event) => setNewName(event.target.value)
+  const handleNumberChange = (event) => setNewNumber(event.target.value)
+  const handleFilterChange = (event) => setFilter(event.target.value.toLowerCase())
   const handleDel = (id) => {
     if (window.confirm(`Remove ${persons.find(p => p.id === id).name} ?`)) {
-      service.del(id)
+      service.del(id).catch(error => sendNotification('error: person has been deleted already'))
       setPersons(persons.filter(p => p.id !== id)) 
+
+      sendNotification('Removed')
     }
   }
 
@@ -68,6 +68,8 @@ const App = () => {
         .add(newPerson)
         // and save the response (with the id) in the local database
         .then(data => {setPersons(persons.concat(data))})
+
+      sendNotification(`Added ${newPerson.name}`)
       
     }
     // Second case: the person is already in the database
@@ -83,6 +85,8 @@ const App = () => {
           .update(newPersonId, newPerson)
           // update the local copy
           .then(data => setPersons(persons.map(p => p.id === data.id ? data : p)))
+          .catch(error => sendNotification('error: persone has been deleted'))
+        sendNotification(`Updated ${newPerson.name}'s number`)
       }
     }
     setNewName('')
@@ -91,6 +95,7 @@ const App = () => {
 
   return (
     <div>
+      <Notification message={notificationMessage} />
       <h2>Search</h2>
       <div>Filter: <input value={filter} onChange={handleFilterChange}/></div>
       <h2>Add a new entry</h2>
