@@ -59,7 +59,10 @@ const App = () => {
   const addPerson = (event) => {
     event.preventDefault()
     const newPerson = { name: newName, number: newNumber }
-    if (persons.findIndex(e => e.name === newName) === -1) {
+    const newPersonIndex = persons.findIndex(e => e.name === newName)
+
+    // First case: the person isn't in the database yet
+    if (newPersonIndex === -1) {
       // post the new person to the server
       service
         .add(newPerson)
@@ -67,7 +70,21 @@ const App = () => {
         .then(data => {setPersons(persons.concat(data))})
       
     }
-    else {alert(`${newPerson.name} is already in the phonebook`)}
+    // Second case: the person is already in the database
+    else {
+      // ask for confirmation
+      if (window.confirm(
+          `${newPerson.name} is already in the phonebook.
+           Do you want to update their number to ${newPerson.number}?`
+         )) {
+        const newPersonId = persons[newPersonIndex].id
+        service
+          // update the backend
+          .update(newPersonId, newPerson)
+          // update the local copy
+          .then(data => setPersons(persons.map(p => p.id === data.id ? data : p)))
+      }
+    }
     setNewName('')
     setNewNumber('')
   }
