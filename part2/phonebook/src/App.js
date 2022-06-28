@@ -1,14 +1,16 @@
 import { useState, useEffect } from 'react'
-import axios from 'axios'
+import service from './services/phonebook'
 
-const Person = ({ person }) =>
-  <li>{person.name}: {person.number}</li>
+const Person = ({ person, id, handleDel }) =>
+  <li>{person.name}: {person.number} 
+    <button onClick={() => handleDel(id)}>del</button>
+  </li>
 
 const Persons = (props) =>
   <ul>
     {props.persons
       .filter(p => p.name.toLowerCase().includes(props.filter))
-      .map(p => <Person key={p.name} person={p} />) 
+      .map(p => <Person key={p.id} person={p} id={p.id} handleDel={props.handleDel} />) 
     }
   </ul>
 
@@ -33,9 +35,9 @@ const App = () => {
 
   // Load the database from the server
   useEffect(() => {
-    axios
-      .get('http://localhost:3001/persons')
-      .then(response => {setPersons(response.data)})
+    service
+      .getAll()
+      .then(data => {setPersons(data)})
   }, [])
 
   const handleNameChange = (event) => {
@@ -47,16 +49,22 @@ const App = () => {
   const handleFilterChange = (event) => {
     setFilter(event.target.value.toLowerCase())
   }
+  const handleDel = (id) => {
+    if (window.confirm(`Remove ${persons.find(p => p.id === id).name} ?`)) {
+      service.del(id)
+      setPersons(persons.filter(p => p.id !== id)) 
+    }
+  }
 
   const addPerson = (event) => {
     event.preventDefault()
     const newPerson = { name: newName, number: newNumber }
     if (persons.findIndex(e => e.name === newName) === -1) {
       // post the new person to the server
-      axios
-        .post('http://localhost:3001/persons', newPerson)
+      service
+        .add(newPerson)
         // and save the response (with the id) in the local database
-        .then(response => {setPersons(persons.concat(response.data))})
+        .then(data => {setPersons(persons.concat(data))})
       
     }
     else {alert(`${newPerson.name} is already in the phonebook`)}
@@ -75,7 +83,7 @@ const App = () => {
             handleNumberChange={handleNumberChange}
             addPerson={addPerson} />
       <h2>Numbers</h2>
-      <Persons persons={persons} filter={filter} />
+      <Persons persons={persons} filter={filter} handleDel={handleDel}/>
       <div> debug: {filter} </div>
     </div>
   )
