@@ -1,11 +1,12 @@
 const express = require('express')
 const app = express()
 
+// Load the database
 let persons = require('./db.json')
 let maxId = persons.reduce((prev, p) => Math.max(prev, p.id), 0)
 const newId = () => { return ++maxId }
 
-app.use(express.json())
+app.use(express.json()) // for json parsing
 
 app.get('/', (_req, res) => {
   res.send('Phonebook backend')
@@ -25,7 +26,6 @@ app.get('/api/persons', (_req, res) => {
 app.post('/api/persons', (req, res) => {
   const person = req.body
   // Check if the request is valid
-  let error = false
   if (!person.name) {return res.status(400).json({error: 'name missing'})}
   if (!person.number) {return res.status(400).json({error: 'number missing'})}
   if (persons.find(p => p.name === person.name)) {
