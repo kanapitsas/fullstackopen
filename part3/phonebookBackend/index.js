@@ -7,8 +7,12 @@ let persons = require('./db.json')
 let maxId = persons.reduce((prev, p) => Math.max(prev, p.id), 0)
 const newId = () => ++maxId
 
-app.use(express.json()) // for json parsing
-app.use(morgan('tiny')) // http logging using morgan
+// for json parsing
+app.use(express.json())
+
+// http logging using morgan
+morgan.token('data', (req, _res) => JSON.stringify(req.body)) // new token for body data
+app.use(morgan('method :url :status :res[content-length] - :response-time ms :data')) 
 
 app.get('/', (_req, res) => {
   res.send('Phonebook backend')
