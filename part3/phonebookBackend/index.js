@@ -1,12 +1,14 @@
 const express = require('express')
+const morgan = require('morgan')
 const app = express()
 
 // Load the database
 let persons = require('./db.json')
 let maxId = persons.reduce((prev, p) => Math.max(prev, p.id), 0)
-const newId = () => { return ++maxId }
+const newId = () => ++maxId
 
 app.use(express.json()) // for json parsing
+app.use(morgan('tiny')) // http logging using morgan
 
 app.get('/', (_req, res) => {
   res.send('Phonebook backend')
@@ -33,9 +35,9 @@ app.post('/api/persons', (req, res) => {
   }
   // Only keep name and number attributes
   newPerson = {
+    id: newId(),
     name: person.name,
-    number: person.number,
-    id: newId()
+    number: person.number
   }
   persons.push(newPerson)
   res.json(newPerson)
@@ -53,6 +55,9 @@ app.delete('/api/persons/:id', (req, res) => {
   persons = persons.filter(p => p.id != id)
   res.status(204).end()
 })
+
+const unknownEndpoint = (_req, res) => res.status(404).send({ error: 'unknown endpoint' })
+app.use(unknownEndpoint)
 
 
 const PORT = 3001
