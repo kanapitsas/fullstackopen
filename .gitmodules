@@ -1,0 +1,3 @@
+[submodule "part3/phonebookFullstack"]
+	path = part3/phonebookFullstack
+	url = https://github.com/kanapitsas/fullstackopen/tree/main/part3/phonebookFullstack
